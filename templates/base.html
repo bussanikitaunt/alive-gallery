@@ -1,0 +1,223 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>Alive Gallery</title>
+  
+    <!-- Main stylesheet -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+  
+    <!-- New playful fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600&family=Nunito:wght@400;600;700&display=swap" rel="stylesheet">
+  </head>
+  <body>
+
+    <header class="top-bar">
+      <div class="top-title">
+        <span class="logo-mark">✧</span>
+        <span class="logo-text">Alive Gallery</span>  
+      </div>
+    
+      <div class="top-right">
+        <form class="top-search" action="{{ url_for('search') }}" method="get">
+          <input type="text" name="q" placeholder="Search your gallery…" />
+        </form>
+      
+        <!-- Theme toggle -->
+        <button type="button" id="themeToggle" class="theme-toggle">
+          <span class="theme-toggle-icon">🌙</span>
+        </button>
+      
+        <div class="menu-shell">
+          <button class="nav-toggle" id="nav-toggle" type="button">
+            <span class="nav-label">Menu</span>
+            <span class="nav-chevron">▾</span>
+          </button>
+      
+          <nav class="top-nav" id="top-nav">
+            <a href="{{ url_for('home') }}"
+               class="{% if current_page == 'home' %}is-active{% endif %}">Home</a>
+            <a href="{{ url_for('index') }}"
+               class="{% if current_page == 'index' %}is-active{% endif %}">All entries</a>
+            <a href="{{ url_for('dreamboard') }}"
+               class="{% if current_page == 'dreamboard' %}is-active{% endif %}">Dreamboard</a>
+            <a href="{{ url_for('milestones') }}"
+               class="{% if current_page == 'milestones' %}is-active{% endif %}">Milestones</a>
+            <a href="{{ url_for('stats') }}"
+               class="{% if current_page == 'stats' %}is-active{% endif %}">Stats</a>
+            <a href="{{ url_for('timeline') }}"
+               class="{% if current_page == 'timeline' %}is-active{% endif %}">Timeline</a>
+            <a href="{{ url_for('daily_reflection') }}"
+               class="{% if current_page == 'daily_reflection' %}is-active{% endif %}">Daily reflection</a>
+            <a href="{{ url_for('new_entry') }}"
+               class="{% if current_page == 'new_entry' %}is-active{% endif %}">Add entry</a>
+          </nav>
+          
+        </div>
+      </div>        
+    </header>    
+
+    <!-- MAIN LAYOUT: sidebar + page content -->
+    <div class="layout">
+      <aside class="sidebar">
+        <div class="sidebar-section">
+          <div class="sidebar-heading handwritten">Collections</div>
+
+          {% if categories is defined and categories %}
+            <p class="sidebar-hint">
+              Collections are like notebooks. Click one to see entries in it.
+            </p>
+
+            <ul class="sidebar-list">
+              {% if category_subcats is defined %}
+                {% for c in categories %}
+                  <li class="sidebar-collection-group">
+                    <a
+                      href="{{ url_for('category_view', name=c) }}"
+                      class="sidebar-collection {% if current_category == c %}is-active{% endif %}"
+                    >
+                      {{ c }}
+                    </a>
+
+                    {% if category_subcats.get(c) %}
+                      <ul class="sidebar-tags">
+                        {% for s in category_subcats.get(c) %}
+                          <li>
+                            <a
+                              href="{{ url_for('subcategory_view', name=s) }}"
+                              class="sidebar-tag {% if current_subcategory == s %}is-active{% endif %}"
+                            >
+                              {{ s }}
+                            </a>
+                          </li>
+                        {% endfor %}
+                      </ul>
+                    {% endif %}
+                  </li>
+                {% endfor %}
+              {% else %}
+                {% for c in categories %}
+                  <li>
+                    <a href="{{ url_for('category_view', name=c) }}">
+                      {{ c }}
+                    </a>
+                  </li>
+                {% endfor %}
+              {% endif %}
+            </ul>
+          {% else %}
+            <p class="sidebar-hint">Add your first entry to see collections here.</p>
+          {% endif %}
+        </div>
+
+        <div class="sidebar-section">
+          <a class="sidebar-button" href="{{ url_for('new_entry') }}">＋ Add new entry</a>
+        </div>
+      </aside>
+
+      <main class="main-content">
+        {% block content %}{% endblock %}
+      </main>
+    </div>
+
+    <!-- Simple JS for mobile nav toggle -->
+    <script>
+      function toggleNav() {
+        const nav = document.querySelector('.top-nav');
+        if (nav) {
+          nav.classList.toggle('is-open');
+        }
+      }
+    </script>
+    
+    <script>
+      (function () {
+        const navToggle = document.getElementById('navToggle');
+        const topNav = document.getElementById('topNav');
+    
+        if (!navToggle || !topNav) return;
+    
+        navToggle.addEventListener('click', function () {
+          topNav.classList.toggle('is-open');
+        });
+    
+        // Optional: close menu when clicking outside
+        document.addEventListener('click', function (e) {
+          if (!topNav.classList.contains('is-open')) return;
+          const clickedInside = topNav.contains(e.target) || navToggle.contains(e.target);
+          if (!clickedInside) {
+            topNav.classList.remove('is-open');
+          }
+        });
+      })();
+    </script>
+    
+    <script>
+      const navToggle = document.getElementById('nav-toggle');
+      const topNav = document.getElementById('top-nav');
+    
+      if (navToggle && topNav) {
+        // Open/close on button click
+        navToggle.addEventListener('click', (event) => {
+          event.stopPropagation();
+          const isOpen = topNav.classList.toggle('is-open');
+          navToggle.classList.toggle('is-open', isOpen);
+        });
+    
+        // Close when clicking outside
+        document.addEventListener('click', (event) => {
+          if (!topNav.classList.contains('is-open')) return;
+    
+          const clickInsideMenu =
+            topNav.contains(event.target) || navToggle.contains(event.target);
+    
+          if (!clickInsideMenu) {
+            topNav.classList.remove('is-open');
+            navToggle.classList.remove('is-open');
+          }
+        });
+    
+        // Close on Escape
+        document.addEventListener('keydown', (event) => {
+          if (event.key === 'Escape') {
+            topNav.classList.remove('is-open');
+            navToggle.classList.remove('is-open');
+          }
+        });
+      }
+    </script>
+    
+    <script>
+      (function () {
+        const body = document.body;
+        const toggleBtn = document.getElementById('themeToggle');
+        if (!toggleBtn) return;
+    
+        const iconSpan = toggleBtn.querySelector('.theme-toggle-icon');
+    
+        function applyStoredTheme() {
+          const stored = localStorage.getItem('alive-gallery-theme');
+          if (stored === 'dark') {
+            body.classList.add('dark-mode');
+          }
+          updateIcon();
+        }
+    
+        function updateIcon() {
+          const isDark = body.classList.contains('dark-mode');
+          iconSpan.textContent = isDark ? '☀️' : '🌙';
+        }
+    
+        toggleBtn.addEventListener('click', () => {
+          body.classList.toggle('dark-mode');
+          const mode = body.classList.contains('dark-mode') ? 'dark' : 'light';
+          localStorage.setItem('alive-gallery-theme', mode);
+          updateIcon();
+        });
+    
+        applyStoredTheme();
+      })();
+    </script>    
+
+  </body>
+</html>

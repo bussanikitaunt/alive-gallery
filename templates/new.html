@@ -1,0 +1,112 @@
+{% extends "base.html" %}
+{% block content %}
+  <section class="form-shell">
+    <h1 class="section-title">Add a new entry</h1>
+    <p class="section-subtitle">
+      An entry can be a creation, memory, achievement, or goal.
+      You can group entries into <strong>collections</strong> and <strong>themes</strong>.
+    </p>
+
+    <form method="post" enctype="multipart/form-data" class="entry-form">
+      <label>
+        Title
+        <input type="text" name="title" required
+               placeholder="e.g. SitaRama painting, NYC Trip, Promotion day">
+      </label>
+
+      <label>
+        Collection
+        <input type="text" name="category" list="category-list"
+               placeholder="e.g. Painting, Travel, Life diary, Goals">
+      </label>
+      <datalist id="category-list">
+        {% if categories is defined %}
+          {% for c in categories %}
+            <option value="{{ c }}"></option>
+          {% endfor %}
+        {% endif %}
+      </datalist>
+
+      <label>
+        Theme (optional)
+        <input type="text" name="subcategory" list="subcategory-list"
+               placeholder="e.g. Spiritual, NYC Trip, Career, Health">
+      </label>
+      <datalist id="subcategory-list">
+        {% if subcategories is defined %}
+          {% for s in subcategories %}
+            <option value="{{ s }}"></option>
+          {% endfor %}
+        {% endif %}
+      </datalist>
+
+      <label>
+        Date
+        <input type="date" name="date">
+      </label>
+
+      <label>
+        How did this feel?
+        <input type="text" name="mood" placeholder="happy, calm, grateful…">
+      </label>
+
+      <label>
+        Tags (comma separated)
+        <input type="text" name="tags" placeholder="e.g. spiritual, warm, flowers">
+      </label>
+
+      <label>
+        Image file (optional)
+        <input type="file" name="image_file" accept="image/*">
+      </label>
+
+      <label>
+        Notes / story
+        <textarea name="notes" rows="4"
+          placeholder="What happened here? Why does this matter to you?"></textarea>
+      </label>
+      <hr>
+
+      <h2 class="section-title">Dreamboard (optional)</h2>
+      <p class="section-subtitle">
+        Fill this only if this entry is a <strong>dream or goal</strong> you want on your Dreamboard.
+      </p>
+
+      <label>
+        Dream theme
+        <input type="text" name="dream_theme" list="dream-theme-list"
+               placeholder="Career, Travel, Art, Wellbeing">
+      </label>
+      <datalist id="dream-theme-list">
+        <option value="Career"></option>
+        <option value="Travel"></option>
+        <option value="Art"></option>
+        <option value="Wellbeing"></option>
+        <option value="Learning"></option>
+      </datalist>
+
+      <label>
+        Priority
+        <select name="dream_priority">
+          <option value="">(none)</option>
+          <option value="High">High</option>
+          <option value="Medium">Medium</option>
+          <option value="Low">Low</option>
+        </select>
+      </label>
+
+      <label>
+        Progress (%)
+        <input type="number" name="dream_progress" min="0" max="100" step="5"
+               placeholder="0–100">
+      </label>
+
+      <label>
+        Target date / timeline
+        <input type="date" name="dream_target_date">
+      </label>
+
+      <button type="submit" class="btn primary">Save entry</button>
+    </form>
+  </section>
+{% endblock %}

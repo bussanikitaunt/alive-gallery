@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+{% block content %}
+
+<section class="dream-new-hero">
+  <h1 class="hero-title handwritten">Create a Dream ✨</h1>
+  <p class="hero-subtitle">
+    Set an intention. Visualize something you want in your future.
+  </p>
+</section>
+
+<form class="dream-form" method="POST">
+
+  <label>Dream Title</label>
+  <input type="text" name="title" placeholder="A place I want to visit..." required>
+
+  <label>Theme</label>
+  <select name="dream_theme">
+    <option value="" disabled selected>Select a theme</option>
+    {% for t in themes %}
+      <option value="{{ t }}">{{ t }}</option>
+    {% endfor %}
+  </select>
+
+  <label>Priority</label>
+  <select name="dream_priority">
+    <option value="">(none)</option>
+    {% for p in priorities %}
+      <option value="{{ p }}">{{ p }}</option>
+    {% endfor %}
+  </select>
+
+  <label>Progress (%)</label>
+  <input type="number" name="dream_progress" min="0" max="100" placeholder="0–100">
+
+  <label>Target Date</label>
+  <input type="date" name="dream_target_date">
+
+  <label>Your intention / notes</label>
+  <textarea name="notes" rows="5"
+    placeholder="Why does this dream matter to you?"></textarea>
+
+  <button class="btn primary" type="submit">Save dream ✨</button>
+</form>
+
+{% endblock %}

@@ -1,0 +1,123 @@
+{% extends "base.html" %}
+{% block content %}
+  <section class="form-shell">
+    <h1 class="section-title">Edit entry</h1>
+    <p class="section-subtitle">
+      Update details, change its collection or theme, or replace the image.
+    </p>
+
+    <form method="post" enctype="multipart/form-data" class="entry-form">
+      <label>
+        Title
+        <input type="text" name="title" required value="{{ entry.title }}">
+      </label>
+
+      <label>
+        Date
+        <input type="date" name="date" value="{{ entry.date }}">
+      </label>
+
+      <label>
+        Mood / how you felt
+        <input type="text" name="mood" value="{{ entry.mood }}"
+               placeholder="e.g. calm, proud, overwhelmed">
+      </label>
+
+      <label>
+        Collection
+        <input type="text" name="category" list="category-list" value="{{ entry.category }}"
+               placeholder="e.g. Art, Life diary, Goals, Travel">
+      </label>
+      <datalist id="category-list">
+        {% if categories is defined %}
+          {% for c in categories %}
+            <option value="{{ c }}"></option>
+          {% endfor %}
+        {% endif %}
+      </datalist>
+
+      <label>
+        Theme inside this collection (optional)
+        <input type="text" name="subcategory" list="subcategory-list" value="{{ entry.subcategory }}"
+               placeholder="e.g. Spiritual, Nature, NYC trip, Career">
+      </label>
+      <datalist id="subcategory-list">
+        {% if subcategories is defined %}
+          {% for s in subcategories %}
+            <option value="{{ s }}"></option>
+          {% endfor %}
+        {% endif %}
+      </datalist>
+
+      <label>
+        Tags (comma separated)
+        <input type="text" name="tags" value="{{ tags_str }}"
+               placeholder="e.g. spiritual, warm, flowers">
+      </label>
+
+      <p class="section-subtitle">
+        Current image:
+        {% if entry.image_path %}
+          <code>{{ entry.image_path }}</code>
+        {% else %}
+          <em>None yet</em>
+        {% endif %}
+      </p>
+
+      <label>
+        Replace image (optional)
+        <input type="file" name="image_file" accept="image/*">
+      </label>
+
+      <label>
+        Notes / story
+        <textarea name="notes" rows="4"
+        placeholder="Write anything you want to remember about this entry.">{{ entry.notes }}</textarea>
+      </label>
+      
+      <hr>
+
+      <h2 class="section-title">Dreamboard (optional)</h2>
+      <p class="section-subtitle">
+        Update these if this entry is a dream or goal.
+      </p>
+
+      <label>
+        Dream theme
+        <input type="text" name="dream_theme" list="dream-theme-list"
+               value="{{ entry.dream_theme }}"
+               placeholder="Career, Travel, Art, Wellbeing">
+      </label>
+      <datalist id="dream-theme-list">
+        <option value="Career"></option>
+        <option value="Travel"></option>
+        <option value="Art"></option>
+        <option value="Wellbeing"></option>
+        <option value="Learning"></option>
+      </datalist>
+
+      <label>
+        Priority
+        <select name="dream_priority">
+          <option value="" {% if not entry.dream_priority %}selected{% endif %}>(none)</option>
+          <option value="High" {% if entry.dream_priority == 'High' %}selected{% endif %}>High</option>
+          <option value="Medium" {% if entry.dream_priority == 'Medium' %}selected{% endif %}>Medium</option>
+          <option value="Low" {% if entry.dream_priority == 'Low' %}selected{% endif %}>Low</option>
+        </select>
+      </label>
+
+      <label>
+        Progress (%)
+        <input type="number" name="dream_progress" min="0" max="100" step="5"
+               value="{{ entry.dream_progress }}">
+      </label>
+
+      <label>
+        Target date / timeline
+        <input type="date" name="dream_target_date" value="{{ entry.dream_target_date }}">
+      </label>
+
+      <button type="submit" class="btn primary">Save changes</button>
+    </form>
+  </section>
+{% endblock %}

@@ -1,0 +1,73 @@
+{% extends "base.html" %}
+{% block content %}
+
+<section class="gallery-header">
+  <h1 class="section-title">Milestones</h1>
+  <p class="section-subtitle">
+    Big moments and goals that are close to (or already) complete.
+  </p>
+</section>
+
+{% if not entries %}
+  <p>No milestones yet. Mark a dream as a milestone by
+     setting progress above 80% or tagging it with <code>milestone</code>.</p>
+{% else %}
+  <section class="dream-summary-list">
+    {% for e in entries %}
+      <article class="dream-summary-card">
+        <a href="{{ url_for('entry_detail', entry_id=e.id) }}" class="dream-summary-link">
+          <h2 class="dream-summary-title handwritten">
+            {% if e.dream_progress and e.dream_progress|int >= 100 %}✅ {% endif %}
+            {{ e.title }}
+          </h2>
+
+          <div class="dream-summary-meta">
+            <div>
+              {% if e.dream_theme %}
+                <span class="dream-summary-pill">
+                  {{ e.dream_theme }}
+                </span>
+              {% elif e.category %}
+                <span class="dream-summary-pill">
+                  {{ e.category }}
+                </span>
+              {% endif %}
+
+              {% if e.dream_priority %}
+                <span class="dream-summary-pill priority-pill priority-{{ e.dream_priority|lower }}">
+                  {{ e.dream_priority }}
+                </span>
+              {% endif %}
+            </div>
+
+            <div class="dream-summary-date">
+              {% if e.dream_target_date %}
+                {{ e.dream_target_date }}
+              {% elif e.date %}
+                {{ e.date }}
+              {% endif %}
+            </div>
+          </div>
+
+          {% if e.dream_progress %}
+            <div class="dream-progress">
+              <div class="dream-progress-bar">
+                <div class="dream-progress-fill"
+                     style="width: {{ e.dream_progress }}%;"></div>
+              </div>
+              <span class="dream-progress-label">{{ e.dream_progress }}%</span>
+            </div>
+          {% endif %}
+
+          {% if e.notes %}
+            <p class="dream-summary-notes">
+              {{ e.notes[:160] }}{% if e.notes|length > 160 %}…{% endif %}
+            </p>
+          {% endif %}
+        </a>
+      </article>
+    {% endfor %}
+  </section>
+{% endif %}
+
+{% endblock %}

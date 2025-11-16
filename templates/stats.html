@@ -1,0 +1,92 @@
+{% extends "base.html" %}
+{% block content %}
+
+<section class="gallery-header">
+  <h1 class="section-title">Stats & insights</h1>
+  <p class="section-subtitle">
+    A gentle overview of your entries, moods, and upcoming dreams.
+  </p>
+</section>
+
+<section class="cards" style="margin-bottom: 2rem;">
+  <article class="card">
+    <div class="card-body">
+      <h2 class="card-title">Total entries</h2>
+      <p style="font-size: 2.2rem; margin: 0;">{{ total_entries }}</p>
+      <p class="section-subtitle">Paintings, memories, travels, dreams… everything.</p>
+    </div>
+  </article>
+
+  <article class="card">
+    <div class="card-body">
+      <h2 class="card-title">This year</h2>
+      <p style="font-size: 2.2rem; margin: 0;">{{ this_year_count }}</p>
+      <p class="section-subtitle">Entries you’ve added in {{ datetime.utcnow().year if false }}</p>
+      <p class="section-subtitle">Entries added in {{ now().year if false }}</p>
+      <p class="section-subtitle"> This year.</p>
+    </div>
+  </article>
+
+  {% if top_categories %}
+    <article class="card">
+      <div class="card-body">
+        <h2 class="card-title">Most used collections</h2>
+        <ul style="padding-left: 1.2rem; margin: 0.4rem 0 0;">
+          {% for name, count in top_categories[:5] %}
+            <li>{{ name }} – {{ count }}</li>
+          {% endfor %}
+        </ul>
+      </div>
+    </article>
+  {% endif %}
+
+  {% if top_moods %}
+    <article class="card">
+      <div class="card-body">
+        <h2 class="card-title">Top moods</h2>
+        <ul style="padding-left: 1.2rem; margin: 0.4rem 0 0;">
+          {% for name, count in top_moods[:5] %}
+            <li>{{ name }} – {{ count }}</li>
+          {% endfor %}
+        </ul>
+      </div>
+    </article>
+  {% endif %}
+</section>
+
+{% if upcoming_entries %}
+  <section class="home-section">
+    <h2 class="section-title">Upcoming dreams (next 60 days)</h2>
+    <p class="section-subtitle">These target dates are getting closer.</p>
+
+    <section class="dream-summary-list">
+      {% for e in upcoming_entries %}
+        <article class="dream-summary-card">
+          <a href="{{ url_for('entry_detail', entry_id=e.id) }}" class="dream-summary-link">
+            <h3 class="dream-summary-title handwritten">{{ e.title }}</h3>
+            <div class="dream-summary-meta">
+              <div>
+                {% if e.dream_theme %}
+                  <span class="dream-summary-pill">{{ e.dream_theme }}</span>
+                {% endif %}
+              </div>
+              <div class="dream-summary-date">
+                {{ e.dream_target_date }}
+              </div>
+            </div>
+            {% if e.dream_progress %}
+              <div class="dream-progress">
+                <div class="dream-progress-bar">
+                  <div class="dream-progress-fill"
+                       style="width: {{ e.dream_progress }}%;"></div>
+                </div>
+                <span class="dream-progress-label">{{ e.dream_progress }}%</span>
+              </div>
+            {% endif %}
+          </a>
+        </article>
+      {% endfor %}
+    </section>
+  </section>
+{% endif %}
+{% endblock %}

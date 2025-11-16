@@ -1,0 +1,191 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<div class="page-header-row">
+  <div>
+    <h1 class="page-title">Dreamboard</h1>
+    <p class="page-subtitle">
+      Your long-term dreams and goals, all in one cozy board.
+    </p>
+  </div>
+
+  <a href="{{ url_for('new_dream') }}" class="home-link">
+    + Add dream
+  </a>
+</div>
+
+<section class="home-section">
+  <div class="home-section-header">
+    <h2 class="home-section-title">All dreams</h2>
+
+    <form method="get" class="dreamboard-filters">
+      <select name="theme" onchange="this.form.submit()">
+        <option value="">All themes</option>
+        {% for t in themes %}
+          <option value="{{ t }}"
+                  {% if current_theme and current_theme.lower() == t.lower() %}selected{% endif %}>
+            {{ t }}
+          </option>
+        {% endfor %}
+      </select>
+
+      <select name="priority" onchange="this.form.submit()">
+        <option value="">Any priority</option>
+        {% for p in priorities %}
+          <option value="{{ p }}"
+                  {% if current_priority and current_priority.lower() == p.lower() %}selected{% endif %}>
+            {{ p }}
+          </option>
+        {% endfor %}
+      </select>
+    </form>
+  </div>
+
+  {% if entries %}
+    <div class="dreamboard-list">
+      {% for d in entries %}
+        <article class="dreamboard-card">
+            <header class="dreamboard-card-header">
+                <div class="dreamboard-title-row">
+                  <span class="dreamboard-emoji">🎯</span>
+                  <h3 class="dreamboard-title">{{ d.title }}</h3>
+                </div>
+              
+                <div class="dreamboard-pill-row">
+                  {% if d.dream_theme %}
+                    <span class="chip chip-soft">{{ d.dream_theme }}</span>
+                  {% endif %}
+                  {% if d.dream_priority %}
+                    <span class="chip chip-soft">{{ d.dream_priority }}</span>
+                  {% endif %}
+                </div>
+              </header>
+              
+
+          {% if d.dream_target_date %}
+            <div class="dreamboard-meta">
+              <span class="dreamboard-label">Target:</span>
+              <span>{{ d.dream_target_date }}</span>
+            </div>
+          {% endif %}
+
+          {% set prog_raw = d.dream_progress or 0 %}
+          {% set prog = prog_raw|int if prog_raw|string else 0 %}
+
+          <div class="dream-progress-bar">
+            <div class="dream-progress-fill" style="width: {{ prog }}%;"></div>
+          </div>
+          <div class="dream-progress-text">
+            <span>{{ d.notes or "" }}</span>
+            <span>{{ prog }}%</span>
+          </div>
+
+          <footer class="dreamboard-footer">
+            {% if "dream" in (d.tags or []) %}
+              <span class="dream-tag">#dream</span>
+            {% endif %}
+          </footer>
+        </article>
+      {% endfor %}
+    </div>
+  {% else %}
+    <p class="home-empty-state">
+      No dreams yet. Add your first dream to start your board. ✨
+    </p>
+  {% endif %}
+</section>
+
+<style>
+  .dreamboard-filters {
+    display: flex;
+    gap: 0.5rem;
+  }
+  .dreamboard-filters select {
+    border-radius: 999px;
+    border: 1px solid #e3d2f5;
+    padding: 0.3rem 0.8rem;
+    font-size: 0.85rem;
+    background: #fff;
+  }
+  .dreamboard-list {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+  }
+  .dreamboard-card {
+    padding: 1rem 1.2rem 1.1rem;
+    border-radius: 1.4rem;
+    background: #fff7ee;
+    box-shadow: 0 10px 30px rgba(170, 120, 80, 0.15);
+  }
+  .dreamboard-card-header {
+    display: flex;
+    justify-content: space-between;
+    gap: 0.75rem;
+    align-items: flex-start;
+    margin-bottom: 0.4rem;
+  }
+  .dreamboard-title-row {
+    display: flex;
+    align-items: center;
+    gap: 0.45rem;
+  }
+  .dreamboard-emoji {
+    font-size: 1.3rem;
+  }
+  .dreamboard-title {
+    margin: 0;
+    font-size: 1.05rem;
+  }
+  .dreamboard-pill-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.35rem;
+  }
+
+  .chip {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.25rem 0.7rem;
+  border-radius: 999px;
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+
+.chip-soft {
+  background: #f6e4ff;
+  color: #6b3e9a;
+}
+
+  .dreamboard-meta {
+    margin-bottom: 0.3rem;
+    font-size: 0.85rem;
+    color: #9b7f6a;
+  }
+  .dreamboard-label {
+    font-weight: 600;
+  }
+  .dreamboard-footer {
+    margin-top: 0.35rem;
+    font-size: 0.8rem;
+    color: #aa7f6a;
+  }
+  .dream-tag {
+    padding: 0.15rem 0.6rem;
+    border-radius: 999px;
+    background: #f5e1d0;
+  }
+
+  @media (max-width: 800px) {
+    .dreamboard-filters {
+      width: 100%;
+      justify-content: flex-end;
+    }
+    .dreamboard-filters select {
+      max-width: 50%;
+    }
+  }
+</style>
+
+{% endblock %}

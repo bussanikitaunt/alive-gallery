@@ -1,0 +1,187 @@
+[
+  {
+    "id": 1,
+    "title": "Shiva Painting",
+    "date": "2025-11-12",
+    "mood": "Spiritual",
+    "image_path": "uploads/Shiva_Painting.jpeg",
+    "notes": "Made this painting for a friend. She absolutely loved it.",
+    "tags": [
+      "spiritual"
+    ],
+    "created_at": "2025-11-12T23:06:09.232639",
+    "category": "Painting",
+    "subcategory": "Spiritual",
+    "dream_theme": "",
+    "dream_priority": "",
+    "dream_target_date": "",
+    "dream_progress": 0
+  },
+  {
+    "id": 2,
+    "title": "SitaRama",
+    "date": "2025-08-02",
+    "mood": "Spiritual",
+    "image_path": "uploads/SitaRama.jpeg",
+    "notes": "I love creating spiritual paintings. Sita Rama painting is so close to my heart",
+    "tags": [
+      "spiritual"
+    ],
+    "created_at": "2025-11-13T01:13:44.542660",
+    "category": "Painting",
+    "subcategory": "Spiritual",
+    "dream_theme": "",
+    "dream_priority": "",
+    "dream_target_date": "",
+    "dream_progress": 0
+  },
+  {
+    "id": 3,
+    "title": "Ganesha",
+    "date": "2020-10-07",
+    "mood": "Spiritual",
+    "category": "Painting",
+    "subcategory": "Spiritual",
+    "image_path": "uploads/Ganesha.jpeg",
+    "notes": "",
+    "tags": [
+      "spiritual"
+    ],
+    "created_at": "2025-11-13T02:49:07.006853",
+    "dream_theme": "",
+    "dream_priority": "",
+    "dream_target_date": "",
+    "dream_progress": 0
+  },
+  {
+    "id": 4,
+    "title": "Buddha",
+    "date": "2020-09-17",
+    "mood": "Abstract",
+    "category": "Painting",
+    "subcategory": "Abstract",
+    "image_path": "uploads/Buddha.jpeg",
+    "notes": "",
+    "tags": [
+      "abstract"
+    ],
+    "created_at": "2025-11-13T02:49:54.660732",
+    "dream_theme": "",
+    "dream_priority": "",
+    "dream_target_date": "",
+    "dream_progress": 0
+  },
+  {
+    "id": 5,
+    "title": "Girl with Red Hat",
+    "date": "2020-09-10",
+    "mood": "Abstract",
+    "category": "Painting",
+    "subcategory": "Abstract",
+    "image_path": "uploads/Girl_with_redhat.jpeg",
+    "notes": "",
+    "tags": [
+      "abstract"
+    ],
+    "created_at": "2025-11-13T02:50:59.415228",
+    "dream_theme": "",
+    "dream_priority": "",
+    "dream_target_date": "",
+    "dream_progress": 0
+  },
+  {
+    "id": 6,
+    "title": "Flower",
+    "date": "2020-09-09",
+    "mood": "Nature",
+    "category": "Painting",
+    "subcategory": "Nature",
+    "image_path": "uploads/Flower.jpeg",
+    "notes": "",
+    "tags": [
+      "nature",
+      "flower"
+    ],
+    "created_at": "2025-11-13T02:52:19.004109",
+    "dream_theme": "",
+    "dream_priority": "",
+    "dream_target_date": "",
+    "dream_progress": 0
+  },
+  {
+    "id": 7,
+    "title": "Statue of Liberty",
+    "date": "2025-08-29",
+    "mood": "Full of energy",
+    "category": "Travel",
+    "subcategory": "NYC Trip",
+    "image_path": "uploads/006FBAE0-B32C-41D6-8EE1-9065FC3E0DBF-26882-00000D42CF28E25E.jpeg",
+    "notes": "",
+    "tags": [
+      "travel",
+      "NYC",
+      "friends"
+    ],
+    "created_at": "2025-11-13T19:54:42.119549",
+    "dream_theme": "",
+    "dream_priority": "",
+    "dream_target_date": "",
+    "dream_progress": 0
+  },
+  {
+    "id": 8,
+    "title": "Timesquare",
+    "date": "2025-08-29",
+    "mood": "Full of energy",
+    "category": "Travel",
+    "subcategory": "NYC Trip",
+    "image_path": "uploads/IMG_4605.jpeg",
+    "notes": "",
+    "tags": [
+      "travel",
+      "NYC",
+      "friends"
+    ],
+    "created_at": "2025-11-13T19:57:12.595181",
+    "dream_theme": "",
+    "dream_priority": "",
+    "dream_target_date": "",
+    "dream_progress": 0
+  },
+  {
+    "id": 9,
+    "title": "Visit Alaska",
+    "date": "2025-11-15",
+    "mood": "",
+    "category": "Goals",
+    "subcategory": "",
+    "image_path": "",
+    "notes": "Watch Northern lights",
+    "tags": [
+      "dream"
+    ],
+    "created_at": "2025-11-15T20:53:08.349910",
+    "dream_theme": "Travel",
+    "dream_priority": "Medium",
+    "dream_progress": "0",
+    "dream_target_date": "2026-12-31"
+  },
+  {
+    "id": 10,
+    "title": "Daily reflection – 2025-11-15",
+    "date": "2025-11-15",
+    "mood": "Grateful",
+    "category": "Life diary",
+    "subcategory": "Daily reflection",
+    "image_path": "",
+    "notes": "I feel so happy today",
+    "tags": [
+      "reflection"
+    ],
+    "created_at": "2025-11-15T21:01:38.936563",
+    "dream_theme": "",
+    "dream_priority": "",
+    "dream_target_date": "",
+    "dream_progress": "0"
+  }
+]

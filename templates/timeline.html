@@ -1,0 +1,119 @@
+{% extends "base.html" %}
+{% block content %}
+
+<section class="gallery-header">
+    {% if current_category %}
+      <h1 class="section-title">Journey timeline – {{ current_category }}</h1>
+      <p class="section-subtitle">
+        Showing entries from the “{{ current_category }}” collection, in the order they happened.
+      </p>
+    {% else %}
+      <h1 class="section-title">Journey timeline</h1>
+      <p class="section-subtitle">
+        See your entries in the order they happened – year by year, month by month.
+      </p>
+    {% endif %}
+  </section>
+  {% if categories %}
+  <section class="timeline-collection-filter">
+    <span class="timeline-collection-label">Collection:</span>
+
+    <!-- "All" option -->
+    <a href="{{ url_for('timeline') }}"
+       class="pill collection {% if not current_category %}pill-active{% endif %}">
+      All
+    </a>
+
+    <!-- One pill per collection -->
+    {% for c in categories %}
+      <a href="{{ url_for('timeline', category=c) }}"
+         class="pill collection {% if current_category == c %}pill-active{% endif %}">
+        {{ c }}
+      </a>
+    {% endfor %}
+  </section>
+{% endif %}  
+  {% if not timeline_years %}
+    <p>No dated entries yet. <a href="{{ url_for('new_dream') }}">Add your first one</a>.</p>
+  {% else %}
+
+    <!-- Year quick-jump pills -->
+    <section class="timeline-year-nav">
+      <span class="timeline-year-nav-label">Jump to year:</span>
+      {% for block in timeline_years %}
+        <a href="#year-{{ block.year }}" class="pill year-pill">
+          {{ block.year }}
+        </a>
+      {% endfor %}
+    </section>
+
+    <!-- Main vertical timeline -->
+    <section class="timeline">
+      {% for block in timeline_years %}
+        <div id="year-{{ block.year }}" class="timeline-year-section">
+          <h2 class="timeline-year">{{ block.year }}</h2>
+
+          {% for month in block.months %}
+            <h3 class="timeline-month">{{ month.month_name }}</h3>
+
+            {% for e in month.entries %}
+              <article class="timeline-item">
+                <div class="timeline-dot"></div>
+
+                <div class="timeline-card">
+                  {% if e.image_path %}
+                    <div class="timeline-thumb">
+                      <img src="{{ url_for('static', filename=e.image_path) }}"
+                           alt="{{ e.title }}">
+                    </div>
+                  {% endif %}
+
+                  <div class="timeline-text">
+                    <h3 class="timeline-entry-title handwritten">
+                      {{ e.title }}
+                    </h3>
+
+                    <div class="timeline-entry-meta">
+                      {% if e.date %}
+                        <span>{{ e.date }}</span>
+                      {% endif %}
+                      {% if e.category %}
+                        <span>· {{ e.category }}</span>
+                      {% endif %}
+                      {% if e.subcategory %}
+                        <span>· {{ e.subcategory }}</span>
+                      {% endif %}
+                      {% if e.mood %}
+                        <span>· feeling {{ e.mood }}</span>
+                      {% endif %}
+                    </div>
+
+                    {% if e.tags %}
+                      <div class="timeline-tags">
+                        {% for t in e.tags %}
+                          <span>#{{ t }}</span>
+                        {% endfor %}
+                      </div>
+                    {% endif %}
+
+                    {% if e.notes %}
+                      <p class="timeline-notes">
+                        {{ e.notes[:140] }}{% if e.notes|length > 140 %}…{% endif %}
+                      </p>
+                    {% endif %}
+
+                    <a class="timeline-view-link"
+                       href="{{ url_for('entry_detail', entry_id=e.id) }}">
+                      View entry →
+                    </a>
+                  </div>
+                </div>
+              </article>
+            {% endfor %}
+          {% endfor %}
+        </div>
+      {% endfor %}
+    </section>
+
+  {% endif %}
+{% endblock %}

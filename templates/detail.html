@@ -1,0 +1,119 @@
+{% extends "base.html" %}
+{% block content %}
+  <article class="detail fade-in">
+
+    <!-- Back link -->
+    <a href="{{ url_for('index') }}" class="back-link">← Back to all entries</a>
+
+    {# ========= HERO HEADER CARD ========= #}
+    {% set cat = entry.category or "" %}
+
+    <header class="detail-hero detail-hero--{{ cat|lower|replace(' ', '-') }}">
+      <div class="detail-hero-icon">
+        {% if cat == "Life diary" %}
+          📖
+        {% elif cat == "Goals" %}
+          🎯
+        {% elif cat == "Painting" %}
+          🎨
+        {% elif cat == "Travel" %}
+          ✈️
+        {% else %}
+          📌
+        {% endif %}
+      </div>
+
+      <div class="detail-hero-text">
+        <h1 class="detail-title">{{ entry.title }}</h1>
+
+        <p class="detail-meta">
+          {{ cat }}
+          {% if entry.subcategory %} • {{ entry.subcategory }}{% endif %}
+          {% if entry.date %} • {{ entry.date }}{% endif %}
+        </p>
+
+        {% if cat == "Life diary" and entry.subcategory == "Daily reflection" %}
+          <p class="detail-hero-tip">✨ Tiny snapshot of today.</p>
+        {% elif cat == "Goals" %}
+          <p class="detail-hero-tip">🚀 One step closer to your dream.</p>
+        {% elif cat == "Painting" %}
+          <p class="detail-hero-tip">🎨 A little piece of your inner world.</p>
+        {% elif cat == "Travel" %}
+          <p class="detail-hero-tip">🌍 A memory from your adventures.</p>
+        {% endif %}
+      </div>
+    </header>
+
+    {# ========= BODY: IMAGE + TEXT ========= #}
+    <div class="detail-layout">
+
+      {% if entry.image_path %}
+        <div class="detail-image">
+          <img src="{{ url_for('static', filename=entry.image_path) }}"
+               alt="{{ entry.title }}">
+        </div>
+      {% endif %}
+
+      <div class="detail-info">
+
+        {# Special layout for daily reflections #}
+        {% if cat == "Life diary" and entry.subcategory == "Daily reflection" %}
+
+          {% if entry.mood %}
+            <p class="detail-mood">
+              <span class="detail-mood-label">Mood</span>
+              <span class="detail-mood-value">{{ entry.mood }}</span>
+            </p>
+          {% endif %}
+
+          {% if entry.notes %}
+            <h2 class="detail-subheading">Note for today</h2>
+            <div class="detail-notes">
+              {{ entry.notes | e | replace('\n', '<br>') | safe }}
+            </div>
+          {% endif %}
+
+        {% else %}
+
+          {% if entry.mood %}
+            <p class="detail-mood">
+              <span class="detail-mood-label">Mood</span>
+              <span class="detail-mood-value">{{ entry.mood }}</span>
+            </p>
+          {% endif %}
+
+          {% if entry.tags %}
+            <div class="detail-tags">
+              {% for t in entry.tags %}
+                <span>#{{ t }}</span>
+              {% endfor %}
+            </div>
+          {% endif %}
+
+          {% if entry.notes %}
+            <h2 class="detail-subheading">About this entry</h2>
+            <div class="detail-notes">
+              {{ entry.notes | e | replace('\n', '<br>') | safe }}
+            </div>
+          {% endif %}
+
+        {% endif %}
+
+        <div class="detail-actions">
+          <a href="{{ url_for('edit_entry', entry_id=entry.id) }}"
+             class="btn secondary">
+            ✎ Edit
+          </a>
+
+          <form method="post"
+                action="{{ url_for('delete_entry', entry_id=entry.id) }}"
+                onsubmit="return confirm('Delete this entry?');">
+            <button type="submit" class="btn danger">
+              🗑 Delete
+            </button>
+          </form>
+        </div>
+      </div>
+    </div>
+  </article>
+{% endblock %}

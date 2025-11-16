@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+{% block content %}
+
+<section class="form-shell">
+  <h1 class="section-title">Daily reflection</h1>
+  <p class="section-subtitle">
+    A tiny check-in with yourself for today.
+  </p>
+
+  <form method="post" class="entry-form">
+    <label>
+      Mood (optional)
+      <input type="text" name="mood" placeholder="grateful, tired, hopeful…">
+    </label>
+    <label>
+      Notes
+      <textarea name="notes" rows="4"
+        placeholder="What stood out today? How do you feel?"></textarea>
+    </label>
+    <button type="submit" class="btn primary">Save reflection</button>
+  </form>
+</section>
+
+{% if reflections %}
+  <section class="home-section" style="margin-top: 2rem;">
+    <h2 class="section-title">Recent reflections</h2>
+    <div class="dream-summary-list">
+      {% for e in reflections %}
+        <article class="dream-summary-card">
+          <a href="{{ url_for('entry_detail', entry_id=e.id) }}" class="dream-summary-link">
+            <h3 class="dream-summary-title handwritten">
+              {{ e.date }}{% if e.mood %} · {{ e.mood }}{% endif %}
+            </h3>
+            {% if e.notes %}
+              <p class="dream-summary-notes">
+                {{ e.notes[:180] }}{% if e.notes|length > 180 %}…{% endif %}
+              </p>
+            {% endif %}
+          </a>
+        </article>
+      {% endfor %}
+    </div>
+  </section>
+{% endif %}
+
+{% endblock %}

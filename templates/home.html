@@ -1,0 +1,199 @@
+{% extends "base.html" %}
+{% block content %}
+
+<div class="home-page fade-in">
+
+  <!-- LEFT: Today panel -->
+  <section class="home-hero home-card fade-in">
+    <div class="hero-top-row">
+      <p class="hero-chip">Welcome back 💫</p>
+      <div class="hero-emoji float-emoji">🌈</div>
+    </div>
+  
+    <h1>Your Alive Gallery</h1>
+    <p class="hero-subtitle">
+      A cozy space for your memories, goals, dreams, and tiny daily check-ins.
+    </p>
+  
+    <p class="hero-message">
+      {{ daily_message }}
+    </p>
+  
+    <div class="hero-actions">
+      <a href="{{ url_for('new_entry') }}" class="btn primary">📸 New memory</a>
+      <a href="{{ url_for('new_dream') }}" class="btn secondary">🌙 Add a dream</a>
+      <a href="{{ url_for('daily_reflection') }}" class="btn secondary">
+        📔 Open daily reflection
+      </a>
+    </div>
+  </section>
+  
+  <section class="home-reminder home-card fade-in">
+    <div class="reminder-content">
+      <div class="reminder-emoji float-emoji">💌</div>
+      <div>
+        <h2 class="reminder-title">Tiny reflection for today?</h2>
+        <p class="reminder-text">
+          Write just one or two sentences about how you feel. Future-you will be so glad you did.
+        </p>
+      </div>
+      <a href="{{ url_for('daily_reflection') }}" class="btn primary">
+        ✍️ Start reflection
+      </a>
+    </div>
+  </section>
+  
+
+    <!-- Quick daily reflection inline card -->
+    <section class="home-card home-reflection-card fade-in">
+      <div class="home-card-header">
+        <h2 class="home-card-title">Today’s tiny reflection</h2>
+        <span class="home-card-badge">Just a few words</span>
+      </div>
+
+      <form method="post" action="{{ url_for('daily_reflection') }}" class="home-reflection-form">
+        <label>
+          <span class="home-label">Mood (optional)</span>
+          <input
+            type="text"
+            name="mood"
+            placeholder="grateful, cozy, tired, hopeful..."
+          >
+        </label>
+
+        <label>
+          <span class="home-label">Note for today</span>
+          <textarea
+            name="notes"
+            rows="3"
+            placeholder="What stood out today? How do you feel in one or two sentences?"
+          ></textarea>
+        </label>
+
+        <button type="submit" class="btn primary home-reflection-save">
+          Save reflection
+        </button>
+      </form>
+    </section>
+
+    <!-- Quick dream tracker -->
+    <section class="home-card home-dream-snippets fade-in">
+      <div class="home-card-header">
+        <h2 class="home-card-title">Dreams in focus</h2>
+        <a href="{{ url_for('dreamboard') }}" class="home-card-link">Open dreamboard →</a>
+      </div>
+
+      {% set dream_entries = entries | selectattr('category', 'equalto', 'Goals') | list %}
+      {% if dream_entries %}
+        <ul class="home-dream-list">
+          {% for e in dream_entries[:3] %}
+            <li class="home-dream-item">
+              <div class="home-dream-main">
+                <p class="home-dream-title">{{ e.title }}</p>
+                {% if e.subcategory %}
+                  <p class="home-dream-theme">{{ e.subcategory }}</p>
+                {% endif %}
+              </div>
+
+              <div class="home-dream-meta">
+                {% if e.date %}
+                  <span class="home-dream-pill">🎯 {{ e.date }}</span>
+                {% endif %}
+                {% if e.progress is defined %}
+                  <span class="home-dream-pill">Progress: {{ e.progress }}%</span>
+                {% endif %}
+              </div>
+            </li>
+          {% endfor %}
+        </ul>
+      {% else %}
+        <p class="home-empty-note">
+          No dreams pinned yet. Try adding one on the dreamboard!
+        </p>
+      {% endif %}
+    </section>
+  </section>
+
+  <!-- RIGHT: colorful grids -->
+  <section class="home-column home-right">
+
+    <!-- Collections grid -->
+    <section class="home-card home-collections-card fade-in">
+      <div class="home-card-header">
+        <h2 class="home-card-title">Collections</h2>
+        <p class="home-card-subtitle">
+          Your big “notebooks” – art, life diary, travel, goals, and more.
+        </p>
+      </div>
+
+      <div class="home-collections-grid">
+        {% for c in categories %}
+          <a href="{{ url_for('category_view', name=c) }}" class="collection-tile">
+            <div class="collection-icon">
+              {% if "goal" in c|lower %}
+                🎯
+              {% elif "life" in c|lower %}
+                📖
+              {% elif "paint" in c|lower %}
+                🎨
+              {% elif "travel" in c|lower %}
+                ✈️
+              {% else %}
+                ✧
+              {% endif %}
+            </div>
+            <div class="collection-text">
+              <h3 class="collection-title">{{ c }}</h3>
+              {% if category_subcats is defined and category_subcats.get(c) %}
+                <p class="collection-tags">
+                  {% for s in category_subcats.get(c)[:3] %}
+                    <span>{{ s }}</span>
+                  {% endfor %}
+                  {% if category_subcats.get(c)|length > 3 %}
+                    <span>+ more</span>
+                  {% endif %}
+                </p>
+              {% else %}
+                <p class="collection-tags collection-tags-empty">
+                  No themes yet – add some when you create entries.
+                </p>
+              {% endif %}
+            </div>
+          </a>
+        {% endfor %}
+      </div>
+    </section>
+
+    <!-- Tiny stats row -->
+    <section class="home-card home-stats-row fade-in">
+      <div class="home-card-header">
+        <h2 class="home-card-title">Little stats</h2>
+        <p class="home-card-subtitle">
+          Just for fun – a quick peek at your gallery.
+        </p>
+      </div>
+
+      <div class="home-stats-grid">
+        <div class="home-stat-pill">
+          <span class="home-stat-label">Total entries</span>
+          <span class="home-stat-value">{{ entries|length }}</span>
+        </div>
+
+        <div class="home-stat-pill">
+          <span class="home-stat-label">Goals & dreams</span>
+          <span class="home-stat-value">
+            {{ dream_entries|length if dream_entries is defined else 0 }}
+          </span>
+        </div>
+
+        <div class="home-stat-pill">
+          <span class="home-stat-label">Collections</span>
+          <span class="home-stat-value">{{ categories|length }}</span>
+        </div>
+      </div>
+    </section>
+
+  </section>
+</div>
+
+{% endblock %}

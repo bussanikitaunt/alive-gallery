@@ -1,0 +1,44 @@
+{# templates/partials/card.html #}
+<article class="entry-card">
+  <a href="{{ url_for('entry_detail', entry_id=e.id) }}" class="entry-card-link">
+    <div class="entry-image-wrapper">
+      {% if e.image_path %}
+        <img
+          src="{{ url_for('static', filename=e.image_path) }}"
+          alt="{{ e.title }}"
+          class="entry-image"
+        >
+      {% else %}
+        <div class="entry-image-placeholder">
+          {% if e.category == "Life diary" %}
+            📓
+          {% elif e.category == "Travel" %}
+            📍
+          {% elif e.category == "Painting" %}
+            🎨
+          {% elif e.category == "Goals" %}
+            🎯
+          {% else %}
+            ✧
+          {% endif %}
+        </div>
+      {% endif %}
+    </div>
+
+    <div class="entry-card-body">
+      <h3 class="entry-title">{{ e.title }}</h3>
+
+      <div class="entry-meta-row">
+        {% if e.subcategory %}
+          <span class="entry-pill">{{ e.subcategory }}</span>
+        {% elif e.category %}
+          <span class="entry-pill">{{ e.category }}</span>
+        {% endif %}
+
+        {% if e.date %}
+          <span class="entry-date">{{ e.date }}</span>
+        {% endif %}
+      </div>
+    </div>
+  </a>
+</article>
