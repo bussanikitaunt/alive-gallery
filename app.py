@@ -1,9 +1,9 @@
 from flask import Flask, render_template, request, redirect, url_for
+from collections import defaultdict
 import json
 import os
 from datetime import datetime
 import calendar
-from collections import defaultdict
 from werkzeug.utils import secure_filename
 
 app = Flask(__name__)
@@ -16,13 +16,17 @@ ALLOWED_EXTENSIONS = {"png", "jpg", "jpeg", "gif"}
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 
 
-def allowed_file(filename):
+# ---------- Helpers ----------
+
+def allowed_file(filename: str) -> bool:
     return "." in filename and filename.rsplit(".", 1)[1].lower() in ALLOWED_EXTENSIONS
 
 
 def load_entries():
+    """Load all entries from the JSON file and ensure new keys exist."""
     if not os.path.exists(DATA_FILE):
         return []
+
     with open(DATA_FILE, "r", encoding="utf-8") as f:
         try:
             entries = json.load(f)
@@ -31,15 +35,15 @@ def load_entries():
 
     # Ensure all entries have the new keys
     for e in entries:
-        e.setdefault("category", "Art")   # generic default
-        e.setdefault("subcategory", "")   # e.g. "Spiritual"
+        e.setdefault("category", "Art")       # generic default
+        e.setdefault("subcategory", "")       # e.g. "Spiritual"
         e.setdefault("tags", [])
 
         # Dreamboard-specific fields (all optional)
-        e.setdefault("dream_theme", "")          # e.g. "Career", "Travel"
-        e.setdefault("dream_priority", "")       # "High", "Medium", "Low"
-        e.setdefault("dream_target_date", "")    # "2025-12-31"
-        e.setdefault("dream_progress", 0)        # integer 0–100
+        e.setdefault("dream_theme", "")       # e.g. "Career", "Travel"
+        e.setdefault("dream_priority", "")    # "High", "Medium", "Low"
+        e.setdefault("dream_target_date", "") # "2025-12-31"
+        e.setdefault("dream_progress", 0)     # integer 0–100
 
     return entries
 
@@ -57,12 +61,15 @@ def next_id(entries):
 
 
 def compute_dream_entries(entries):
+    """Return entries that should appear on the dreamboard (sorted newest first)."""
     dream_keywords = {"dream", "dreams", "goal", "goals", "manifest", "manifestation"}
     result = []
+
     for e in entries:
         cat = (e.get("category") or "").lower()
         tags = [t.lower() for t in e.get("tags", [])]
 
+        # Treat "Goals", "Dreams", "Dreamboard" as special notebooks
         if cat in {"goal", "goals", "dreams", "dreamboard"}:
             result.append(e)
         elif dream_keywords.intersection(tags):
@@ -70,6 +77,29 @@ def compute_dream_entries(entries):
 
     return sorted(result, key=lambda e: e.get("date", ""), reverse=True)
 
+
+def build_sidebar(entries):
+    """Return (categories, subcategories, category_subcats) for the sidebar."""
+    categories = sorted(
+        {e.get("category", "Art") for e in entries if e.get("category")}
+    )
+    subcategories = sorted(
+        {e.get("subcategory", "") for e in entries if e.get("subcategory")}
+    )
+
+    category_subcats = {}
+    for e in entries:
+        c = e.get("category")
+        s = e.get("subcategory")
+        if c and s:
+            category_subcats.setdefault(c, set()).add(s)
+
+    # Convert sets → sorted lists
+    category_subcats = {c: sorted(list(subs)) for c, subs in category_subcats.items()}
+    return categories, subcategories, category_subcats
+
+
+# ---------- Routes ----------
 
 @app.route("/")
 def home():
@@ -81,22 +111,7 @@ def home():
         f"Today is {today_str}. Even one tiny note or dream update keeps your gallery alive. 🌱"
     )
 
-    # Categories & subcategories for the sidebar + home collections
-    categories = sorted({e.get("category", "Art") for e in entries if e.get("category")})
-    subcategories = sorted({e.get("subcategory", "") for e in entries if e.get("subcategory")})
-
-    category_subcats = {}
-    for e in entries:
-        c = e.get("category")
-        s = e.get("subcategory")
-        if c and s:
-            category_subcats.setdefault(c, []).append(s)
-
-    # remove duplicates + sort
-    category_subcats = {
-        c: sorted(set(subs))
-        for c, subs in category_subcats.items()
-    }
+    categories, subcategories, category_subcats = build_sidebar(entries)
 
     return render_template(
         "home.html",
@@ -113,52 +128,32 @@ def home():
 def index():
     entries = load_entries()
 
-    # --- Split into normal vs dream entries ---
-    dream_entries = compute_dream_entries(entries)  # already sorted (newest first)
+    # Split into normal vs dream/goal entries
+    dream_entries = compute_dream_entries(entries)  # already sorted newest→oldest
     regular_entries = [e for e in entries if e not in dream_entries]
 
-    # Sort regular entries (newest first)
     regular_entries_sorted = sorted(
-        regular_entries,
-        key=lambda e: e.get("date", ""),
-        reverse=True,
+        regular_entries, key=lambda e: e.get("date", ""), reverse=True
     )
 
     # Latest 3 daily reflections
     reflections_all = [
-        e for e in entries
+        e
+        for e in entries
         if e.get("category") == "Life diary"
         and e.get("subcategory") == "Daily reflection"
     ]
     featured_reflections = sorted(
-        reflections_all,
-        key=lambda e: e.get("date", ""),
-        reverse=True,
+        reflections_all, key=lambda e: e.get("date", ""), reverse=True
     )[:3]
 
     # Latest 3 dreams/goals
     featured_dreams = dream_entries[:3]
 
-    # Sidebar data (stays the same, based on ALL entries)
-    categories = sorted({e.get("category", "Art") for e in entries if e.get("category")})
-    subcategories = sorted({e.get("subcategory", "") for e in entries if e.get("subcategory")})
-
-    category_subcats = {}
-    for e in entries:
-        c = e.get("category")
-        s = e.get("subcategory")
-        if c and s:
-            category_subcats.setdefault(c, []).append(s)
-
-    # remove duplicates + sort
-    category_subcats = {
-        c: sorted(set(subs))
-        for c, subs in category_subcats.items()
-    }
+    categories, subcategories, category_subcats = build_sidebar(entries)
 
     return render_template(
         "index.html",
-        current_page="index",
         entries=regular_entries_sorted,
         dream_entries=dream_entries,
         featured_reflections=featured_reflections,
@@ -176,74 +171,47 @@ def index():
 def timeline():
     entries = load_entries()
 
-    # Which collection are we filtering by? (optional)
     current_category = request.args.get("category")
 
-    # Entries to show on the timeline (respect the filter if present)
+    # Filter by chosen collection (if any)
     if current_category:
         scoped_entries = [
-            e for e in entries
+            e
+            for e in entries
             if e.get("category", "").lower() == current_category.lower()
         ]
     else:
         scoped_entries = entries
 
-    # Only entries that have a date
     dated_entries = [e for e in scoped_entries if e.get("date")]
 
-    # Sort newest → oldest (YYYY-MM-DD works as a string sort)
     dated_entries = sorted(
-        dated_entries,
-        key=lambda e: e.get("date", ""),
-        reverse=True,
+        dated_entries, key=lambda e: e.get("date", ""), reverse=True
     )
 
-    # Group into {year: {month: [entries...]}}
     grouped = defaultdict(lambda: defaultdict(list))
     for e in dated_entries:
         d = e.get("date")
         if not d or len(d) < 7:
             continue
         year = d[:4]
-        month = d[5:7]  # "01".."12"
+        month = d[5:7]
         grouped[year][month].append(e)
 
-    # Build a list that is easy for Jinja to loop over
     timeline_years = []
     for year in sorted(grouped.keys(), reverse=True):
         months = grouped[year]
         month_blocks = []
-
         for month in sorted(months.keys(), reverse=True):
             month_num = int(month)
             month_name = calendar.month_name[month_num]
-            month_blocks.append({
-                "month": month,
-                "month_name": month_name,
-                "entries": months[month],
-            })
+            month_blocks.append(
+                {"month": month, "month_name": month_name, "entries": months[month]}
+            )
 
-        timeline_years.append({
-            "year": year,
-            "months": month_blocks,
-        })
+        timeline_years.append({"year": year, "months": month_blocks})
 
-    # Sidebar + filter options should always see ALL collections/themes
-    categories = sorted({e.get("category", "Art") for e in entries if e.get("category")})
-    subcategories = sorted({e.get("subcategory", "") for e in entries if e.get("subcategory")})
-
-    category_subcats = {}
-    for e in entries:
-        c = e.get("category")
-        s = e.get("subcategory")
-        if c and s:
-            category_subcats.setdefault(c, []).append(s)
-
-    # remove duplicates + sort
-    category_subcats = {
-        c: sorted(set(subs))
-        for c, subs in category_subcats.items()
-    }
+    categories, subcategories, category_subcats = build_sidebar(entries)
 
     return render_template(
         "timeline.html",
@@ -259,30 +227,17 @@ def timeline():
 @app.route("/category/<name>")
 def category_view(name):
     entries = load_entries()
-    filtered = [e for e in entries if e.get("category", "").lower() == name.lower()]
-    entries_sorted = sorted(filtered, key=lambda e: e.get("date", ""), reverse=True) if filtered else []
+    filtered = [
+        e for e in entries if e.get("category", "").lower() == name.lower()
+    ]
+    entries_sorted = sorted(
+        filtered, key=lambda e: e.get("date", ""), reverse=True
+    ) if filtered else []
 
-    # categories + subcategories for sidebar
-    categories = sorted({e.get("category", "Art") for e in entries if e.get("category")})
-    subcategories = sorted({e.get("subcategory", "") for e in entries if e.get("subcategory")})
-
-    # build mapping { "Art": ["Spiritual", "Nature"], ... }
-    category_subcats = {}
-    for e in entries:
-        c = e.get("category")
-        s = e.get("subcategory")
-        if c and s:
-            category_subcats.setdefault(c, []).append(s)
-
-    # remove duplicates + sort
-    category_subcats = {
-        c: sorted(set(subs))
-        for c, subs in category_subcats.items()
-    }
+    categories, subcategories, category_subcats = build_sidebar(entries)
 
     return render_template(
         "index.html",
-        current_page="index",
         entries=entries_sorted,
         dream_entries=[],
         categories=categories,
@@ -297,28 +252,17 @@ def category_view(name):
 @app.route("/subcategory/<name>")
 def subcategory_view(name):
     entries = load_entries()
-    filtered = [e for e in entries if e.get("subcategory", "").lower() == name.lower()]
-    entries_sorted = sorted(filtered, key=lambda e: e.get("date", ""), reverse=True) if filtered else []
+    filtered = [
+        e for e in entries if e.get("subcategory", "").lower() == name.lower()
+    ]
+    entries_sorted = sorted(
+        filtered, key=lambda e: e.get("date", ""), reverse=True
+    ) if filtered else []
 
-    categories = sorted({e.get("category", "Art") for e in entries if e.get("category")})
-    subcategories = sorted({e.get("subcategory", "") for e in entries if e.get("subcategory")})
-
-    category_subcats = {}
-    for e in entries:
-        c = e.get("category")
-        s = e.get("subcategory")
-        if c and s:
-            category_subcats.setdefault(c, []).append(s)
-
-    # remove duplicates + sort
-    category_subcats = {
-        c: sorted(set(subs))
-        for c, subs in category_subcats.items()
-    }
+    categories, subcategories, category_subcats = build_sidebar(entries)
 
     return render_template(
         "index.html",
-        current_page="index",
         entries=entries_sorted,
         dream_entries=[],
         categories=categories,
@@ -335,13 +279,11 @@ def search():
     query = request.args.get("q", "").strip()
     entries = load_entries()
 
-    # If no query, just go back to all entries
     if not query:
         return redirect(url_for("index"))
 
     q = query.lower()
 
-    # Find entries where the query appears in title/notes/tags/etc.
     def matches(e):
         text_bits = [
             e.get("title", ""),
@@ -351,32 +293,17 @@ def search():
             e.get("subcategory", ""),
             " ".join(e.get("tags", [])),
         ]
-        haystack = " ".join(text_bits).lower()
-        return q in haystack
+        return q in " ".join(text_bits).lower()
 
     filtered = [e for e in entries if matches(e)]
-    entries_sorted = sorted(filtered, key=lambda e: e.get("date", ""), reverse=True)
+    entries_sorted = sorted(
+        filtered, key=lambda e: e.get("date", ""), reverse=True
+    )
 
-    # Build sidebar data
-    categories = sorted({e.get("category", "Art") for e in entries if e.get("category")})
-    subcategories = sorted({e.get("subcategory", "") for e in entries if e.get("subcategory")})
-
-    category_subcats = {}
-    for e in entries:
-        c = e.get("category")
-        s = e.get("subcategory")
-        if c and s:
-            category_subcats.setdefault(c, []).append(s)
-
-    # remove duplicates + sort
-    category_subcats = {
-        c: sorted(set(subs))
-        for c, subs in category_subcats.items()
-    }
+    categories, subcategories, category_subcats = build_sidebar(entries)
 
     return render_template(
         "index.html",
-        current_page="index",
         entries=entries_sorted,
         dream_entries=[],
         categories=categories,
@@ -419,8 +346,6 @@ def new_entry():
             "notes": request.form.get("notes", ""),
             "tags": tags,
             "created_at": datetime.utcnow().isoformat(),
-
-            # NEW dreamboard fields (optional)
             "dream_priority": request.form.get("dream_priority", "").strip(),
             "dream_progress": request.form.get("dream_progress", "").strip(),
             "dream_target_date": request.form.get("dream_target_date", "").strip(),
@@ -431,9 +356,7 @@ def new_entry():
         save_entries(entries)
         return redirect(url_for("index"))
 
-    # GET: build suggestion lists from existing entries
-    categories = sorted({e.get("category", "Art") for e in entries if e.get("category")})
-    subcategories = sorted({e.get("subcategory", "") for e in entries if e.get("subcategory")})
+    categories, subcategories, _ = build_sidebar(entries)
 
     return render_template(
         "new.html",
@@ -464,15 +387,11 @@ def edit_entry(entry_id):
     entry.setdefault("subcategory", "")
     entry.setdefault("tags", [])
 
-    # suggestion lists from ALL entries
-    categories = sorted({e.get("category", "Art") for e in entries if e.get("category")})
-    subcategories = sorted({e.get("subcategory", "") for e in entries if e.get("subcategory")})
+    categories, subcategories, _ = build_sidebar(entries)
 
     if request.method == "POST":
-        # keep old image by default
         image_path = entry.get("image_path", "")
 
-        # optional new file
         if "image_file" in request.files:
             file = request.files["image_file"]
             if file and file.filename and allowed_file(file.filename):
@@ -484,27 +403,26 @@ def edit_entry(entry_id):
         raw_tags = request.form.get("tags", "")
         tags = [t.strip() for t in raw_tags.split(",") if t.strip()]
 
-        entry.update({
-            "title": request.form["title"],
-            "date": request.form.get("date") or entry.get("date", ""),
-            "mood": request.form.get("mood", ""),
-            "category": request.form.get("category", "Art"),
-            "subcategory": request.form.get("subcategory", ""),
-            "image_path": image_path,
-            "notes": request.form.get("notes", ""),
-            "tags": tags,
-
-            # NEW dreamboard fields
-            "dream_priority": request.form.get("dream_priority", "").strip(),
-            "dream_progress": request.form.get("dream_progress", "").strip(),
-            "dream_target_date": request.form.get("dream_target_date", "").strip(),
-            "dream_theme": request.form.get("dream_theme", "").strip(),
-        })
+        entry.update(
+            {
+                "title": request.form["title"],
+                "date": request.form.get("date") or entry.get("date", ""),
+                "mood": request.form.get("mood", ""),
+                "category": request.form.get("category", "Art"),
+                "subcategory": request.form.get("subcategory", ""),
+                "image_path": image_path,
+                "notes": request.form.get("notes", ""),
+                "tags": tags,
+                "dream_priority": request.form.get("dream_priority", "").strip(),
+                "dream_progress": request.form.get("dream_progress", "").strip(),
+                "dream_target_date": request.form.get("dream_target_date", "").strip(),
+                "dream_theme": request.form.get("dream_theme", "").strip(),
+            }
+        )
 
         save_entries(entries)
         return redirect(url_for("entry_detail", entry_id=entry_id))
 
-    # GET: render form pre-filled
     tags_str = ", ".join(entry.get("tags", []))
     return render_template(
         "edit.html",
@@ -540,7 +458,6 @@ def new_dream():
         entry = {
             "id": entry_id,
             "title": title,
-            # You can choose a fixed date or let dreams also have a real date:
             "date": datetime.today().strftime("%Y-%m-%d"),
             "mood": "",
             "category": "Goals",
@@ -559,59 +476,51 @@ def new_dream():
         save_entries(entries)
         return redirect(url_for("dreamboard"))
 
-    # For the dropdowns:
     themes = ["Career", "Travel", "Art", "Wellbeing", "Spiritual", "Growth"]
     priorities = ["High", "Medium", "Low"]
 
-    return render_template("new_dream.html",
-                           themes=themes,
-                           priorities=priorities)
+    return render_template("new_dream.html", themes=themes, priorities=priorities)
 
 
 @app.route("/dreamboard")
 def dreamboard():
     entries = load_entries()
 
-    # 1) Decide which entries belong on the dreamboard
     dream_keywords = {"dream", "goal", "goals", "manifest", "manifestation"}
 
     dream_entries = []
     for e in entries:
         cat = (e.get("category") or "").lower()
         tags = [t.lower() for t in e.get("tags", [])]
-
         if cat in {"goal", "goals"} or dream_keywords.intersection(tags):
             dream_entries.append(e)
 
-    # 2) Ensure dream fields exist (extra safety)
     for e in dream_entries:
         e.setdefault("dream_theme", e.get("category", ""))
         e.setdefault("dream_priority", "")
         e.setdefault("dream_target_date", "")
         e.setdefault("dream_progress", 0)
 
-    # 3) Read filters from query params
     current_theme = request.args.get("theme") or None
     current_priority = request.args.get("priority") or None
 
-    # 4) Build filter options
     themes = sorted({e.get("dream_theme") for e in dream_entries if e.get("dream_theme")})
     priorities = ["High", "Medium", "Low"]
 
-    # 5) Apply filters
     if current_theme:
         dream_entries = [
-            e for e in dream_entries
+            e
+            for e in dream_entries
             if (e.get("dream_theme") or "").lower() == current_theme.lower()
         ]
 
     if current_priority:
         dream_entries = [
-            e for e in dream_entries
+            e
+            for e in dream_entries
             if (e.get("dream_priority") or "").lower() == current_priority.lower()
         ]
 
-    # 6) Sort (by target date if present, then by regular date)
     def dream_sort_key(e):
         target = e.get("dream_target_date") or ""
         date = e.get("date") or ""
@@ -619,22 +528,7 @@ def dreamboard():
 
     dream_entries = sorted(dream_entries, key=dream_sort_key)
 
-    # 7) Sidebar context (same pattern as other pages)
-    categories = sorted({e.get("category", "Art") for e in entries if e.get("category")})
-    subcategories = sorted({e.get("subcategory", "") for e in entries if e.get("subcategory")})
-
-    category_subcats = {}
-    for e in entries:
-        c = e.get("category")
-        s = e.get("subcategory")
-        if c and s:
-            category_subcats.setdefault(c, []).append(s)
-
-    # remove duplicates + sort
-    category_subcats = {
-        c: sorted(set(subs))
-        for c, subs in category_subcats.items()
-    }
+    categories, subcategories, category_subcats = build_sidebar(entries)
 
     return render_template(
         "dreamboard.html",
@@ -677,22 +571,7 @@ def milestones():
 
     milestone_entries = sorted(milestone_entries, key=sort_key)
 
-    # sidebar data (same pattern as other pages)
-    categories = sorted({e.get("category", "Art") for e in entries if e.get("category")})
-    subcategories = sorted({e.get("subcategory", "") for e in entries if e.get("subcategory")})
-
-    category_subcats = {}
-    for e in entries:
-        c = e.get("category")
-        s = e.get("subcategory")
-        if c and s:
-            category_subcats.setdefault(c, []).append(s)
-
-    # remove duplicates + sort
-    category_subcats = {
-        c: sorted(set(subs))
-        for c, subs in category_subcats.items()
-    }
+    categories, subcategories, category_subcats = build_sidebar(entries)
 
     return render_template(
         "milestones.html",
@@ -712,7 +591,6 @@ def stats():
 
     total_entries = len(entries)
 
-    # counts by collection & theme
     by_category = defaultdict(int)
     by_subcategory = defaultdict(int)
     by_mood = defaultdict(int)
@@ -728,15 +606,12 @@ def stats():
         if m:
             by_mood[m] += 1
 
-    # simple “this year” count
     current_year = datetime.today().strftime("%Y")
     this_year_entries = [
-        e for e in entries
-        if e.get("date") and e["date"].startswith(current_year)
+        e for e in entries if e.get("date") and e["date"].startswith(current_year)
     ]
     this_year_count = len(this_year_entries)
 
-    # upcoming dream deadlines (next 60 days)
     today = datetime.today().date()
     upcoming = []
     for e in entries:
@@ -753,24 +628,8 @@ def stats():
     upcoming.sort(key=lambda x: x[0])
     upcoming_entries = [e for _, e in upcoming]
 
-    # sidebar context
-    categories = sorted({e.get("category", "Art") for e in entries if e.get("category")})
-    subcategories = sorted({e.get("subcategory", "") for e in entries if e.get("subcategory")})
+    categories, subcategories, category_subcats = build_sidebar(entries)
 
-    category_subcats = {}
-    for e in entries:
-        c = e.get("category")
-        s = e.get("subcategory")
-        if c and s:
-            category_subcats.setdefault(c, []).append(s)
-
-    # remove duplicates + sort
-    category_subcats = {
-        c: sorted(set(subs))
-        for c, subs in category_subcats.items()
-    }
-
-    # sort dicts for display
     top_categories = sorted(by_category.items(), key=lambda x: x[1], reverse=True)
     top_moods = sorted(by_mood.items(), key=lambda x: x[1], reverse=True)
 
@@ -819,31 +678,19 @@ def daily_reflection():
             }
             entries.append(entry)
             save_entries(entries)
-            return redirect(url_for("daily_reflection"))
+        return redirect(url_for("daily_reflection"))
 
-    # GET: show recent reflections
     reflections = [
-        e for e in entries
+        e
+        for e in entries
         if e.get("category") == "Life diary"
         and e.get("subcategory") == "Daily reflection"
     ]
-    reflections = sorted(reflections, key=lambda e: e.get("date", ""), reverse=True)[:30]
+    reflections = sorted(reflections, key=lambda e: e.get("date", ""), reverse=True)[
+        :30
+    ]
 
-    categories = sorted({e.get("category", "Art") for e in entries if e.get("category")})
-    subcategories = sorted({e.get("subcategory", "") for e in entries if e.get("subcategory")})
-
-    category_subcats = {}
-    for e in entries:
-        c = e.get("category")
-        s = e.get("subcategory")
-        if c and s:
-            category_subcats.setdefault(c, []).append(s)
-
-    # remove duplicates + sort
-    category_subcats = {
-        c: sorted(set(subs))
-        for c, subs in category_subcats.items()
-    }
+    categories, subcategories, category_subcats = build_sidebar(entries)
 
     return render_template(
         "reflect.html",

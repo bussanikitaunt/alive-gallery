@@ -1,156 +1,142 @@
 {% extends "base.html" %}
 
 {% block content %}
+<main class="layout-main">
 
-  {# --- Page header --- #}
-  <section class="gallery-header">
-    <h1 class="section-title">All entries</h1>
-    <p class="section-subtitle">
+  {# ===================== PAGE HEADER ===================== #}
+  <section class="page-header">
+    <h1 class="page-title">All entries</h1>
+    <p class="page-subtitle">
       Your paintings, memories, diary notes, and moments.
     </p>
-
-    {# Optional pill when filtering by collection #}
-    {% if current_category %}
-      <span class="collection-pill">
-        Collection: {{ current_category }}
-      </span>
-    {% elif current_subcategory %}
-      <span class="collection-pill">
-        Theme: {{ current_subcategory }}
-      </span>
-    {% endif %}
   </section>
 
-  {# --- Main gallery grid --- #}
-  <section class="gallery-section">
-    <h2 class="section-label">Gallery</h2>
-
+  {# ===================== MAIN GALLERY GRID ===================== #}
+  {% if entries and entries|length > 0 %}
+  <section class="section-block">
+    <h2 class="section-title-sm">Gallery</h2>
     <div class="cards">
-      {% if entries and entries|length > 0 %}
-        {% for e in entries %}
-          {% include "partials/card.html" %}
-        {% endfor %}
-      {% else %}
-        <p class="empty-message">
-          No entries yet. Start by adding your first memory or painting. ✨
-        </p>
-      {% endif %}
+      {% for e in entries %}
+        {% include "partials/card.html" %}
+      {% endfor %}
     </div>
   </section>
-
-  {# ----------------------------------------------------------
-     Helper lists for the dashboard sections
-     - reflection_entries: latest Life diary / Daily reflection entries (max 3)
-     - dream_preview: first few dream/goal entries (max 3)
-     ---------------------------------------------------------- #}
-
-  {% set reflection_entries =
-      entries
-      | selectattr('category', 'equalto', 'Life diary')
-      | selectattr('subcategory', 'equalto', 'Daily reflection')
-      | list
-  %}
-  {% set reflection_entries = reflection_entries[:3] %}
-
-{# guard against dream_entries not being passed from some views #}
-{% set _dream_list = dream_entries if dream_entries is defined else [] %}
-{% set dream_preview = _dream_list[:3] %}
-
-
-  {# ----------------------------------------------------------
-     Dashboard sections under the gallery
-     ---------------------------------------------------------- #}
-
-  {% if reflection_entries or dream_preview %}
-    <section class="home-dashboard">
-
-      {# --- Daily reflections preview --- #}
-      {% if reflection_entries %}
-        <section class="home-section home-section-reflections">
-          <div class="home-section-header">
-            <h2>Daily reflections</h2>
-            <a href="{{ url_for('daily_reflection') }}" class="home-section-link">
-              Open journal →
-            </a>
-          </div>
-
-          <p class="home-section-subtitle">
-            A quick peek at your recent life diary notes.
-          </p>
-
-          <ul class="home-list">
-            {% for r in reflection_entries %}
-              <li class="home-list-item">
-                <div class="home-list-title">
-                  📓 {{ r.title }}
-                </div>
-
-                <div class="home-list-meta">
-                  <span>{{ r.date }}</span>
-                  {% if r.mood %}
-                    <span> · {{ r.mood }}</span>
-                  {% endif %}
-                </div>
-
-                {% if r.notes %}
-                  <div class="home-list-notes">
-                    {{ r.notes[:140] }}{% if r.notes|length > 140 %}…{% endif %}
-                  </div>
-                {% endif %}
-              </li>
-            {% endfor %}
-          </ul>
-        </section>
-      {% endif %}
-
-      {# --- Dreams & goals preview --- #}
-      {% if dream_preview %}
-        <section class="home-section home-section-dreams">
-          <div class="home-section-header">
-            <h2>Dreams &amp; goals</h2>
-            <a href="{{ url_for('dreamboard') }}" class="home-section-link">
-              Open dreamboard →
-            </a>
-          </div>
-
-          <p class="home-section-subtitle">
-            A snapshot of the dreams you’re tracking.
-          </p>
-
-          <ul class="home-list">
-            {% for d in dream_preview %}
-              <li class="home-list-item">
-                <div class="home-list-title">
-                  🎯 {{ d.title }}
-                </div>
-
-                <div class="home-list-meta">
-                  {% if d.dream_theme %}
-                    <span>{{ d.dream_theme }}</span>
-                  {% endif %}
-                  {% if d.dream_priority %}
-                    <span> · {{ d.dream_priority }} priority</span>
-                  {% endif %}
-                  {% if d.dream_target_date %}
-                    <span> · Target {{ d.dream_target_date }}</span>
-                  {% endif %}
-                </div>
-
-                {% set progress = (d.dream_progress or 0)|int %}
-                <div class="home-progress">
-                  <div class="home-progress-bar">
-                    <div class="home-progress-fill"
-                         style="width: {{ progress }}%;"></div>
-                  </div>
-                  <span class="home-progress-label">{{ progress }}%</span>
-                </div>
-              </li>
-            {% endfor %}
-          </ul>
-        </section>
-      {% endif %}
-
+  
+  {% else %}
+    <section class="gallery-header">
+      <h2 class="section-title">Gallery</h2>
+      <p class="section-subtitle">
+        No entries yet. Start by adding your first memory or painting.
+      </p>
     </section>
   {% endif %}
 
+  {# ===================== RECENT REFLECTIONS ===================== #}
+  {% if reflections and reflections|length > 0 %}
+    <section class="reflection-section fade-in">
+      <div class="section-title-row">
+        <h2 class="section-title">Recent reflections</h2>
+        <a href="{{ url_for('daily_reflection') }}" class="home-card-link">
+          Open reflection journal →
+        </a>
+      </div>
+      <p class="section-subtitle">
+        Your latest <strong>Daily reflection</strong> notes, in one cozy row.
+      </p>
+
+      <ul class="reflection-list">
+        {% for r in reflections %}
+          <li class="reflection-card">
+            <a href="{{ url_for('entry_detail', entry_id=r.id) }}" class="reflection-link">
+              <div class="reflection-title-row">
+                <span class="reflection-emoji">📓</span>
+                <span class="reflection-title">
+                  {{ r.title }}
+                </span>
+              </div>
+
+              <div class="reflection-meta">
+                <span class="reflection-date">{{ r.date }}</span>
+                {% if r.mood %}
+                  <span class="reflection-mood">{{ r.mood }}</span>
+                {% endif %}
+              </div>
+
+              {% if r.notes %}
+                <p class="reflection-snippet">
+                  {{ r.notes[:140] }}{% if r.notes|length > 140 %}…{% endif %}
+                </p>
+              {% endif %}
+            </a>
+          </li>
+        {% endfor %}
+      </ul>
+    </section>
+  {% endif %}
+
+  {# ===================== DREAMS & GOALS STRIP ===================== #}
+  {% if dream_entries and dream_entries|length > 0 %}
+    <section class="dreams-section fade-in">
+      <h2 class="section-title">Dreams &amp; goals</h2>
+      <p class="section-subtitle">
+        These entries are tagged as <code>dream</code> / <code>goal</code> or live in your
+        <strong>Goals</strong> collection. They also appear on your <strong>Dreamboard</strong>.
+      </p>
+
+      <div class="dreams-list">
+        {% for d in dream_entries %}
+          <article class="dream-card">
+            <header class="dream-header">
+              <h3 class="dream-title">{{ d.title }}</h3>
+            </header>
+
+            <div class="dream-meta-row">
+              {% if d.dream_theme %}
+                <span class="chip chip-soft">
+                  {% if d.dream_theme|lower == 'travel' %}✈{% endif %}
+                  {{ d.dream_theme }}
+                </span>
+              {% endif %}
+
+              {% if d.dream_priority %}
+                <span class="chip chip-priority">{{ d.dream_priority }}</span>
+              {% endif %}
+            </div>
+
+            {# progress bar #}
+            <div class="dream-progress-row">
+              {% set prog_raw = d.dream_progress or 0 %}
+              {% set prog = prog_raw|int %}
+              <div class="progress-track">
+                <div class="progress-fill" style="width: {{ prog }}%;"></div>
+              </div>
+              <span class="progress-label">
+                {{ prog }}%
+              </span>
+            </div>
+
+            {% if d.notes %}
+              <p class="dream-notes">
+                {{ d.notes }}
+              </p>
+            {% endif %}
+
+            <footer class="dream-footer">
+              {% if d.dream_target_date %}
+                <span class="dream-date-label">
+                  {{ d.dream_target_date }}
+                </span>
+              {% elif d.date %}
+                <span class="dream-date-label">
+                  {{ d.date }}
+                </span>
+              {% endif %}
+            </footer>
+          </article>
+        {% endfor %}
+      </div>
+    </section>
+  {% endif %}
+
+</main>
 {% endblock %}
