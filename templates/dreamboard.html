@@ -45,23 +45,21 @@
   {% if entries %}
     <div class="dreamboard-list">
       {% for d in entries %}
-        <article class="dreamboard-card">
-            <header class="dreamboard-card-header">
-                <div class="dreamboard-title-row">
-                  <span class="dreamboard-emoji">🎯</span>
-                  <h3 class="dreamboard-title">{{ d.title }}</h3>
-                </div>
-              
-                <div class="dreamboard-pill-row">
-                  {% if d.dream_theme %}
-                    <span class="chip chip-soft">{{ d.dream_theme }}</span>
-                  {% endif %}
-                  {% if d.dream_priority %}
-                    <span class="chip chip-soft">{{ d.dream_priority }}</span>
-                  {% endif %}
-                </div>
-              </header>
-              
+        <!-- changed: make card a div so buttons/forms inside work -->
+        <div class="dreamboard-card" data-dream-id="{{ d.id }}">
+          <header class="dreamboard-card-header">
+            <div class="dreamboard-title-row">
+              <span class="dreamboard-emoji">🎯</span>
+              <h3 class="dreamboard-title">
+                <!-- link to the entry detail page -->
+                <a href="{{ url_for('entry_detail', entry_id=d.id) }}" class="card-title-link">{{ d.title }}</a>
+              </h3>
+            </div>
+            <div class="dreamboard-pill-row">
+              {% if d.dream_theme %}<span class="chip chip-soft">{{ d.dream_theme }}</span>{% endif %}
+              {% if d.dream_priority %}<span class="chip chip-soft">{{ d.dream_priority }}</span>{% endif %}
+            </div>
+          </header>
 
           {% if d.dream_target_date %}
             <div class="dreamboard-meta">
@@ -85,8 +83,17 @@
             {% if "dream" in (d.tags or []) %}
               <span class="dream-tag">#dream</span>
             {% endif %}
+
+            <!-- Edit / Delete actions -->
+            <div class="card-actions" style="float:right; display:inline-flex; gap:.5rem; align-items:center;">
+              <a href="{{ url_for('edit_entry', entry_id=d.id) }}" class="btn secondary">Edit</a>
+
+              <form class="delete-dream-form" action="{{ url_for('delete_entry', entry_id=d.id) }}" method="post" style="display:inline;">
+                <button type="submit" class="btn danger" aria-label="Delete {{ d.title }}">Delete</button>
+              </form>
+            </div>
           </footer>
-        </article>
+        </div>
       {% endfor %}
     </div>
   {% else %}
@@ -242,5 +249,17 @@
     .dreamboard-filters select { max-width: 48%; }
   }
 </style>
+
+<!-- add simple confirm handler so deletes require confirmation -->
+<script>
+  (function () {
+    document.addEventListener('submit', function (e) {
+      if (!e.target.matches('.delete-dream-form')) return;
+      if (!confirm('Delete this dream? This action cannot be undone.')) {
+        e.preventDefault();
+      }
+    });
+  })();
+</script>
 
 {% endblock %}

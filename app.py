@@ -346,6 +346,8 @@ def new_entry():
             "notes": request.form.get("notes", ""),
             "tags": tags,
             "created_at": datetime.utcnow().isoformat(),
+
+            # NEW dreamboard fields (optional)
             "dream_priority": request.form.get("dream_priority", "").strip(),
             "dream_progress": request.form.get("dream_progress", "").strip(),
             "dream_target_date": request.form.get("dream_target_date", "").strip(),
@@ -356,13 +358,25 @@ def new_entry():
         save_entries(entries)
         return redirect(url_for("index"))
 
-    categories, subcategories, _ = build_sidebar(entries)
+    # -------- GET: build data for the sidebar & dropdowns --------
+    categories = sorted({e.get("category", "Art") for e in entries if e.get("category")})
+    subcategories = sorted({e.get("subcategory", "") for e in entries if e.get("subcategory")})
+
+    # build mapping { "Painting": ["Spiritual", "Abstract"], ... }
+    category_subcats = {}
+    for e in entries:
+        c = e.get("category")
+        s = e.get("subcategory")
+        if c and s:
+            category_subcats.setdefault(c, set()).add(s)
+    category_subcats = {c: sorted(list(s)) for c, s in category_subcats.items()}
 
     return render_template(
         "new.html",
         current_page="new_entry",
         categories=categories,
         subcategories=subcategories,
+        category_subcats=category_subcats,
     )
 
 
