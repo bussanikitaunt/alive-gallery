@@ -1,7 +1,8 @@
 {% extends "base.html" %}
 
 {% block content %}
-<main class="layout-main">
+<main class="layout-main layout-main-gallery">
+
 
   {# ===================== PAGE HEADER ===================== #}
   <section class="page-header">
@@ -34,107 +35,100 @@
   {# ===================== RECENT REFLECTIONS ===================== #}
   {% if reflections and reflections|length > 0 %}
     <section class="reflection-section fade-in">
-      <div class="section-title-row">
-        <h2 class="section-title">Recent reflections</h2>
-        <a href="{{ url_for('daily_reflection') }}" class="home-card-link">
-          Open reflection journal →
-        </a>
-      </div>
-      <p class="section-subtitle">
-        Your latest <strong>Daily reflection</strong> notes, in one cozy row.
-      </p>
+      <article class="dream-card">
 
-      <ul class="reflection-list">
-        {% for r in reflections %}
-          <li class="reflection-card">
-            <a href="{{ url_for('entry_detail', entry_id=r.id) }}" class="reflection-link">
-              <div class="reflection-title-row">
-                <span class="reflection-emoji">📓</span>
-                <span class="reflection-title">
-                  {{ r.title }}
-                </span>
-              </div>
+        <div class="section-title-row">
+          <h2 class="section-title">Recent reflections</h2>
+          <a href="{{ url_for('daily_reflection') }}" class="home-card-link">
+            Open reflection journal →
+          </a>
+        </div>
 
-              <div class="reflection-meta">
-                <span class="reflection-date">{{ r.date }}</span>
-                {% if r.mood %}
-                  <span class="reflection-mood">{{ r.mood }}</span>
+        <p class="section-subtitle">
+          Your latest <strong>Daily reflection</strong> notes, in one cozy row.
+        </p>
+
+        <ul class="reflection-list">
+          {% for r in reflections %}
+            <li class="reflection-card">
+              <a href="{{ url_for('entry_detail', entry_id=r.id) }}" class="reflection-link">
+                <div class="reflection-title-row">
+                  <span class="reflection-emoji">📓</span>
+                  <span class="reflection-title">
+                    {{ r.title }}
+                  </span>
+                </div>
+
+                <div class="reflection-meta">
+                  <span class="reflection-date">{{ r.date }}</span>
+                  {% if r.mood %}
+                    <span class="reflection-mood">{{ r.mood }}</span>
+                  {% endif %}
+                </div>
+
+                {% if r.notes %}
+                  <p class="reflection-snippet">
+                    {{ r.notes[:140] }}{% if r.notes|length > 140 %}…{% endif %}
+                  </p>
                 {% endif %}
-              </div>
+              </a>
+            </li>
+          {% endfor %}
+        </ul>
 
-              {% if r.notes %}
-                <p class="reflection-snippet">
-                  {{ r.notes[:140] }}{% if r.notes|length > 140 %}…{% endif %}
-                </p>
-              {% endif %}
-            </a>
-          </li>
-        {% endfor %}
-      </ul>
+      </article>
     </section>
   {% endif %}
 
   {# ===================== DREAMS & GOALS STRIP ===================== #}
   {% if dream_entries and dream_entries|length > 0 %}
     <section class="dreams-section fade-in">
-      <h2 class="section-title">Dreams &amp; goals</h2>
+      <div class="section-title-row">
+        <h2 class="section-title">Dreams &amp; goals</h2>
+        <a href="{{ url_for('dreamboard') }}" class="home-card-link">
+          Open dreamboard →
+        </a>
+      </div>
+
       <p class="section-subtitle">
-        These entries are tagged as <code>dream</code> / <code>goal</code> or live in your
-        <strong>Goals</strong> collection. They also appear on your <strong>Dreamboard</strong>.
+        A quick snapshot of the long-term dreams and goals you’re tracking.
       </p>
 
-      <div class="dreams-list">
-        {% for d in dream_entries %}
-          <article class="dream-card">
-            <header class="dream-header">
-              <h3 class="dream-title">{{ d.title }}</h3>
-            </header>
+      {# show up to 5 dreams in this summary strip #}
+      {% set dreams = dream_entries[:5] %}
 
-            <div class="dream-meta-row">
-              {% if d.dream_theme %}
-                <span class="chip chip-soft">
-                  {% if d.dream_theme|lower == 'travel' %}✈{% endif %}
-                  {{ d.dream_theme }}
-                </span>
-              {% endif %}
-
-              {% if d.dream_priority %}
-                <span class="chip chip-priority">{{ d.dream_priority }}</span>
-              {% endif %}
-            </div>
-
-            {# progress bar #}
-            <div class="dream-progress-row">
-              {% set prog_raw = d.dream_progress or 0 %}
-              {% set prog = prog_raw|int %}
-              <div class="progress-track">
-                <div class="progress-fill" style="width: {{ prog }}%;"></div>
-              </div>
-              <span class="progress-label">
-                {{ prog }}%
+      <ul class="reflection-list">
+        {% for d in dreams %}
+          <li class="reflection-card">
+            <div class="reflection-title-row">
+              <span class="reflection-emoji">🎯</span>
+              <span class="reflection-title">
+                {{ d.title }}
               </span>
             </div>
 
-            {% if d.notes %}
-              <p class="dream-notes">
-                {{ d.notes }}
-              </p>
-            {% endif %}
-
-            <footer class="dream-footer">
+            <div class="reflection-meta">
+              {% if d.dream_theme %}
+                <span class="reflection-date">{{ d.dream_theme }}</span>
+              {% endif %}
+              {% if d.dream_priority %}
+                <span class="reflection-mood">{{ d.dream_priority }} priority</span>
+              {% endif %}
               {% if d.dream_target_date %}
-                <span class="dream-date-label">
-                  {{ d.dream_target_date }}
-                </span>
-              {% elif d.date %}
-                <span class="dream-date-label">
-                  {{ d.date }}
+                <span class="reflection-date">
+                  Target {{ d.dream_target_date }}
                 </span>
               {% endif %}
-            </footer>
-          </article>
+            </div>
+
+            {% if d.notes %}
+              <p class="reflection-snippet">
+                {{ d.notes[:140] }}{% if d.notes|length > 140 %}…{% endif %}
+              </p>
+            {% endif %}
+          </li>
         {% endfor %}
-      </div>
+      </ul>
     </section>
   {% endif %}
 

@@ -212,6 +212,83 @@ body.dark-mode .top-bar {
   font-size: 0.96rem;
 }
 
+/* Cute sidebar / collections panel */
+.sidebar,
+.left-column,
+.home-left,
+.collections,
+.collections-list {
+  background: linear-gradient(180deg, #fff6f9 0%, #fffafc 100%);
+  border-radius: 12px;
+  padding: 1.2rem;
+  width: 240px;                 /* fixed width for desktop */
+  box-shadow: 0 8px 20px rgba(120,70,90,0.06);
+  border: 1px solid rgba(200,150,170,0.08);
+  color: #5a3d3a;
+  font-family: "Nunito", system-ui, sans-serif;
+}
+
+/* Header / title in the sidebar */
+.sidebar h3,
+.left-column h3,
+.collections-title {
+  margin: 0 0 0.6rem 0;
+  font-size: 0.95rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #6b3f86;
+  font-weight: 700;
+}
+
+/* Collections links */
+.sidebar a,
+.left-column a,
+.collections-list a {
+  display: block;
+  padding: 0.38rem 0.45rem;
+  margin: 0.18rem 0;
+  border-radius: 8px;
+  color: #6b4b4b;
+  text-decoration: none;
+  transition: background .14s ease, transform .08s ease;
+}
+.sidebar a:hover,
+.left-column a:hover,
+.collections-list a:hover {
+  background: linear-gradient(90deg,#fff0f8,#fff7fb);
+  transform: translateX(4px);
+  color: #5a2d4a;
+}
+
+/* + Add new entry button */
+.add-entry-btn,
+.sidebar .add-entry-btn,
+.left-column .add-entry-btn {
+  display: inline-block;
+  margin-top: 0.8rem;
+  padding: 0.5rem 0.8rem;
+  background: #fff4fb;
+  border: 1px solid rgba(123,63,134,0.12);
+  color: #7b3f86;
+  border-radius: 999px;
+  font-weight: 700;
+  text-decoration: none;
+  box-shadow: 0 6px 16px rgba(123,63,134,0.06);
+}
+.add-entry-btn:hover { transform: translateY(-2px); }
+
+/* Make sure main content doesn't collide with fixed-width sidebar */
+.layout-main { display: flex; gap: 1.2rem; }
+.layout-main > .content { flex: 1; }
+
+/* Responsive: stack on small screens */
+@media (max-width: 900px) {
+  .sidebar,
+  .left-column,
+  .home-left { width: auto; margin-bottom: 1rem; padding: 0.9rem; border-radius: 10px; }
+  .layout-main { flex-direction: column; }
+}
+
 .sidebar-section {
   margin-bottom: 1.8rem;
 }
@@ -2382,20 +2459,31 @@ body.dark-mode .sidebar-button:hover,
   gap: 0.75rem;
 }
 
+.layout-main-gallery .reflection-section {
+  padding: 20px 24px;
+  background: #ffffffd6;
+  border-radius: 16px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.05);
+}
+
+.reflection-section .section-title-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
 .reflection-list {
   list-style: none;
-  margin: 0.9rem 0 0;
   padding: 0;
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
-  gap: 0.9rem;
+  margin-top: 16px;
 }
 
 .reflection-card {
-  background: var(--bg-card);
-  border-radius: 0.9rem;
-  box-shadow: var(--shadow-soft);
-  padding: 0.75rem 0.9rem 0.9rem;
+  padding: 12px 16px;
+  background: #fff;
+  border-radius: 12px;
+  margin-bottom: 10px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.04);
 }
 
 .reflection-link {
@@ -2406,10 +2494,8 @@ body.dark-mode .sidebar-button:hover,
 }
 
 .reflection-title-row {
-  display: flex;
-  align-items: center;
-  gap: 0.4rem;
-  margin-bottom: 0.3rem;
+  font-weight: 600;
+  margin-bottom: 4px;
 }
 
 .reflection-emoji {
@@ -2437,8 +2523,8 @@ body.dark-mode .sidebar-button:hover,
 }
 
 .reflection-snippet {
-  font-size: 0.9rem;
-  margin: 0;
+  margin-top: 4px;
+  color: #444;
 }
 
 /* Grid that holds the cards */
@@ -2530,3 +2616,17 @@ body.dark-mode .sidebar-button:hover,
   box-shadow: 0 18px 60px rgba(57, 0, 70, 0.16);
 }
 
+/* ===== Gallery page layout overrides ===== */
+
+.layout-main-gallery {
+  /* disable any grid/columns from the generic layout */
+  display: block;
+}
+
+/* make each main section nicely centered & stacked */
+.layout-main-gallery .section-block,
+.layout-main-gallery .reflection-section,
+.layout-main-gallery .dreams-section {
+  max-width: 1120px;
+  margin: 24px auto 40px auto;
+}
