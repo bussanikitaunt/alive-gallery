@@ -128,36 +128,57 @@ def home():
 def index():
     entries = load_entries()
 
-    # Split into normal vs dream/goal entries
-    dream_entries = compute_dream_entries(entries)  # already sorted newest→oldest
-    regular_entries = [e for e in entries if e not in dream_entries]
+    # --- helper: is this a daily reflection? ---
+    def is_reflection(e):
+        return (
+            e.get("category") == "Life diary"
+            and e.get("subcategory") == "Daily reflection"
+        )
+
+    # --- dreams vs regular entries ---
+    dream_entries = compute_dream_entries(entries)  # already sorted (newest first)
+
+    # REGULAR gallery entries:
+    #  - exclude dream entries
+    #  - exclude daily reflections (those will live in the reflections strip only)
+    regular_entries = [
+        e for e in entries
+        if e not in dream_entries and not is_reflection(e)
+    ]
 
     regular_entries_sorted = sorted(
-        regular_entries, key=lambda e: e.get("date", ""), reverse=True
+        regular_entries,
+        key=lambda e: e.get("date", ""),
+        reverse=True,
     )
 
-    # Latest 3 daily reflections
-    reflections_all = [
-        e
-        for e in entries
-        if e.get("category") == "Life diary"
-        and e.get("subcategory") == "Daily reflection"
-    ]
-    featured_reflections = sorted(
-        reflections_all, key=lambda e: e.get("date", ""), reverse=True
-    )[:3]
+    # Recent reflections strip (latest few reflections)
+    reflections = sorted(
+        [e for e in entries if is_reflection(e)],
+        key=lambda e: e.get("date", ""),
+        reverse=True,
+    )[:5]   # show up to 5; change number if you want
 
-    # Latest 3 dreams/goals
-    featured_dreams = dream_entries[:3]
+    # Sidebar data (same as before)
+    categories = sorted({e.get("category", "Art") for e in entries if e.get("category")})
+    subcategories = sorted({e.get("subcategory", "") for e in entries if e.get("subcategory")})
 
-    categories, subcategories, category_subcats = build_sidebar(entries)
+    category_subcats = {}
+    for e in entries:
+        c = e.get("category")
+        s = e.get("subcategory")
+        if c and s:
+            category_subcats.setdefault(c, []).append(s)
+    category_subcats = {
+        c: sorted(set(subs))
+        for c, subs in category_subcats.items()
+    }
 
     return render_template(
         "index.html",
         entries=regular_entries_sorted,
         dream_entries=dream_entries,
-        featured_reflections=featured_reflections,
-        featured_dreams=featured_dreams,
+        reflections=reflections,          # 👈 used by index.html
         categories=categories,
         subcategories=subcategories,
         category_subcats=category_subcats,
@@ -165,6 +186,7 @@ def index():
         current_subcategory=None,
         search_query=None,
     )
+
 
 
 @app.route("/timeline")

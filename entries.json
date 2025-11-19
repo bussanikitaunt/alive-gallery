@@ -129,26 +129,6 @@
     "dream_progress": 0
   },
   {
-    "id": 8,
-    "title": "Timesquare",
-    "date": "2025-08-29",
-    "mood": "Full of energy",
-    "category": "Travel",
-    "subcategory": "NYC Trip",
-    "image_path": "uploads/IMG_4605.jpeg",
-    "notes": "",
-    "tags": [
-      "travel",
-      "NYC",
-      "friends"
-    ],
-    "created_at": "2025-11-13T19:57:12.595181",
-    "dream_theme": "",
-    "dream_priority": "",
-    "dream_target_date": "",
-    "dream_progress": 0
-  },
-  {
     "id": 9,
     "title": "Visit Alaska",
     "date": "2025-11-15",
